@@ -1,5 +1,5 @@
 /* Offline: de hele app wordt bewaard op het toestel. Eerst uit de cache, op de achtergrond verversen. */
-const CACHE = 'ysm-v1.1.0';
+const CACHE = 'ysm-v1.2.0';
 const FILES = ['./', 'index.html', 'style.css', 'manifest.webmanifest', 'js/figure.js', 'js/geo.js', 'js/poses.js', 'js/app.js',
   'fonts/Lato-Light.woff2', 'fonts/Lato-LightItalic.woff2', 'fonts/Lato-Regular.woff2', 'fonts/Lato-Bold.woff2', 'fonts/Courgette-Regular.woff2',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png', 'icons/maskable-512.png'];

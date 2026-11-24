@@ -336,6 +336,23 @@ html{scroll-padding-top:calc(70px + var(--bh,150px))}
 .upd-bar .btn{background:#fff;color:#2f2b26;min-height:40px;flex:none}
 @media print{.upd-bar{display:none}}
 
+/* installeren */
+.install-row{margin:6px 0 2px}
+.ist{display:flex;gap:12px;margin:14px 0}
+.ist-n{flex:none;width:34px;height:34px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;display:grid;place-items:center;font-size:17px}
+.ist-b{flex:1;min-width:0}.ist-b>b{font-size:17px}.ist-b p{margin:6px 0 0;color:var(--muted);font-size:15px}
+.ist-mock{margin-top:8px;background:#f6f3ef;border:1px solid var(--line);border-radius:14px;padding:10px;font-size:15px;color:#555}
+.ist-mock .hl{color:#0a64d6;background:#fff;border-radius:10px;box-shadow:0 0 0 3px #f2a33a;position:relative}
+.mk-bar{display:flex;justify-content:space-around;align-items:center;font-size:20px}.mk-bar span{display:grid;place-items:center;width:40px;height:36px}
+.mk-list{background:#fff;border-radius:10px;overflow:hidden}.mk-list div{padding:9px 12px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center}.mk-list div:last-child{border-bottom:0}
+.mk-list div.hl{font-weight:700;color:#222}
+.mk-top{display:flex;justify-content:space-between;align-items:center;background:#fff;border-radius:10px;padding:8px 10px;font-size:14px}.mk-top span{color:#0a64d6}.mk-top .hl{padding:4px 8px;font-weight:700}
+.mk-addr{display:flex;justify-content:space-between;align-items:center;background:#fff;border-radius:22px;padding:6px 8px 6px 14px;font-size:13.5px;gap:8px}.mk-addr span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mk-addr .hl{display:grid;place-items:center;width:36px;height:32px;color:#333}
+.mk-home{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px}.ist-app{width:58px;height:58px;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.18)}.mk-home small{font-size:12.5px;color:#333}
+.ist-warn{background:#fdf3e3;border-left:4px solid #dd9425;border-radius:0 12px 12px 0;padding:10px 12px;font-size:15px;margin:8px 0}
+.ist-warn svg{vertical-align:-5px}
+.ist-link{word-break:break-all;font-weight:700;color:var(--accent)}
+
 </style>
 </head>
 <body>
@@ -1080,7 +1097,7 @@ if (typeof module !== 'undefined') module.exports = api; else root.YOGA = api;
 /* Yoga Set Maker – app. Alles werkt lokaal en offline; gegevens blijven op het toestel. */
 (function () {
 'use strict';
-const APP_VERSION = '1.1.0';
+const APP_VERSION = '1.2.0';
 const { POSES, CATS, SEQS } = window.YOGA;
 const GEO = window.POSE_GEO;
 const $ = (s, r = document) => r.querySelector(s);
@@ -2115,10 +2132,11 @@ function renderSettings() {
     <div class="row"><button class="btn primary" id="bkOut" style="flex:1">⇩ Back-up maken</button><button class="btn ghost" id="bkIn" style="flex:1">⇧ Back-up terugzetten</button></div>
     <p class="muted" style="font-size:13.5px;margin-bottom:0" id="bkInfo"></p>
   </section>
-  <section class="card set-sec"><h3>App op je beginscherm</h3>
-    ${standalone ? '<div class="install-hint">✓ De app staat op je beginscherm en werkt ook zonder internet.</div>' : isIOS ? '<div class="install-hint"><b>iPhone / iPad:</b> open deze pagina in <b>Safari</b>, tik onderaan op het deel-icoon <b>⇪</b> en kies <b>“Zet op beginscherm”</b>. Daarna open je de app met het icoontje.</div>' : '<div class="install-hint"><b>Android:</b> tik in Chrome rechtsboven op <b>⋮</b> en kies <b>“App installeren”</b> of <b>“Toevoegen aan startscherm”</b>.<br><b>Computer:</b> klik in Chrome of Edge op het installeer-icoon in de adresbalk.</div>'}
-    ${deferredInstall ? '<button class="btn primary wide" id="instBtn" style="margin-top:10px">＋ Installeer de app</button>' : ''}
-  </section>
+  ${isInstalled() ? '' : `<section class="card set-sec" data-tour="install"><h3>App op je beginscherm</h3>
+    <p class="muted" style="margin-top:0">Zet de app als icoontje op je beginscherm. Dan open je hem met één tik, schermvullend en ook zonder internet.</p>
+    <button class="btn primary wide" data-install>📲 App op je beginscherm zetten</button>
+  </section>`}
+  ${isInstalled() ? '<section class="card set-sec"><h3>App op je beginscherm</h3><div class="install-hint">✓ De app staat op je beginscherm en werkt ook zonder internet.</div></section>' : ''}
   <section class="card set-sec" data-tour="feedback"><h3>Feedback of wens doorgeven</h3>
     <p class="muted" style="margin-top:0">Werkt iets niet, mis je iets of heb je een vraag? Laat het weten, dan kan de app verbeterd worden.</p>
     <button class="btn primary wide" id="sFb">✉ Feedback / wens doorgeven</button>
@@ -2144,12 +2162,75 @@ function renderSettings() {
   $('#sFb').onclick = () => openFeedback();
   $('#sFbMail').oninput = (e) => { st.feedbackEmail = e.target.value.trim(); save(); };
   $('#sEx').onclick = () => { exampleSets().forEach((ex) => { const i = D.sets.findIndex((x) => x.id === ex.id); if (i >= 0) D.sets[i] = ex; else D.sets.push(ex); }); save(); toast('Voorbeeldsets staan weer klaar'); };
-  if ($('#instBtn')) $('#instBtn').onclick = async () => { deferredInstall.prompt(); deferredInstall = null; };
   if (D.lastBackup) $('#bkInfo').textContent = 'Laatste back-up: ' + new Date(D.lastBackup).toLocaleString('nl-NL');
   if (navigator.storage && navigator.storage.estimate) navigator.storage.estimate().then((e) => { const i = $('#bkInfo'); if (i) i.textContent += (i.textContent ? ' · ' : '') + 'In gebruik: ' + (e.usage / 1048576).toFixed(1) + ' MB'; });
 }
 let deferredInstall = null;
 window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredInstall = e; });
+window.addEventListener('appinstalled', () => { deferredInstall = null; toast('De app staat nu op je beginscherm ✓'); $$('[data-install]').forEach((b) => b.closest('.set-sec, .install-row') ? b.closest('.set-sec, .install-row').remove() : b.remove()); });
+function isInstalled() { return matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches || navigator.standalone === true; }
+function platform() {
+  const ua = navigator.userAgent;
+  const ios = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (ios) return { os: 'ios', dev: /iPad/.test(ua) || !/iPhone|iPod/.test(ua) ? 'iPad' : 'iPhone', browser: /CriOS/.test(ua) ? 'chrome' : /FxiOS/.test(ua) ? 'firefox' : /EdgiOS/.test(ua) ? 'edge' : /GSA|Instagram|FBAN|FBAV|WhatsApp/.test(ua) ? 'app' : 'safari' };
+  if (/Android/.test(ua)) return { os: 'android', browser: /SamsungBrowser/.test(ua) ? 'samsung' : /Firefox/.test(ua) ? 'firefox' : /EdgA/.test(ua) ? 'edge' : 'chrome' };
+  return { os: 'desktop', browser: /Edg\//.test(ua) ? 'edge' : /Firefox/.test(ua) ? 'firefox' : /Chrome\//.test(ua) ? 'chrome' : /Safari\//.test(ua) ? 'safari' : 'other' };
+}
+const LIVE_URL = 'https://kmhkasper-boop.github.io/yoga-set-maker/';
+const IC = {
+  share: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5"/><path d="M8 10H6a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1h-2"/></svg>',
+  plus: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.5v7M8.5 12h7"/></svg>',
+  dots: '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>',
+};
+function stepHtml(n, title, mock, text) { return `<div class="ist"><div class="ist-n">${n}</div><div class="ist-b"><b>${title}</b><div class="ist-mock">${mock}</div><p>${text}</p></div></div>`; }
+function installSteps(pf) {
+  const icon = `<img src="icons/icon-192.png" alt="" class="ist-app">`;
+  if (pf.os === 'ios') {
+    const where = pf.dev === 'iPad' ? 'rechtsboven naast de adresbalk' : 'onderaan het scherm (soms rechts in de adresbalk)';
+    let pre = '';
+    if (pf.browser !== 'safari') pre = `<div class="ist-warn"><b>Let op:</b> je gebruikt nu ${pf.browser === 'chrome' ? 'Chrome' : pf.browser === 'firefox' ? 'Firefox' : pf.browser === 'edge' ? 'Edge' : 'een app'} op je ${pf.dev}. Het makkelijkst gaat het in <b>Safari</b>: kopieer de link en open hem in Safari. Met Chrome kan het ook vanaf iOS 16.4: tik op het deel-icoon ${IC.share} in de adresbalk en volg dezelfde stappen.<div class="row" style="margin-top:10px"><button class="btn small primary" data-copylink>Kopieer de link</button></div></div>`;
+    return pre + stepHtml(1, 'Tik op het deel-icoon', `<div class="mk-bar"><span>‹</span><span>›</span><span class="hl">${IC.share}</span><span>▢</span></div>`, `Het vierkantje met het pijltje omhoog, ${where}.`) +
+      stepHtml(2, 'Kies “Zet op beginscherm”', `<div class="mk-list"><div>Kopieer</div><div>Voeg bladwijzer toe</div><div class="hl">Zet op beginscherm <span>${IC.plus}</span></div></div>`, 'Scroll een klein stukje naar beneden als je hem niet meteen ziet.') +
+      stepHtml(3, 'Tik op “Voeg toe”', `<div class="mk-top"><span>Annuleer</span><b>Zet op beginscherm</b><span class="hl">Voeg toe</span></div>`, 'Rechtsboven in het venster.') +
+      stepHtml(4, 'Klaar!', `<div class="mk-home">${icon}<small>Yoga Sets</small></div>`, 'Open de app voortaan met dit icoontje op je beginscherm.');
+  }
+  if (pf.os === 'android') {
+    if (pf.browser === 'samsung') return stepHtml(1, 'Tik op het menu', `<div class="mk-bar"><span>‹</span><span>›</span><span>⌂</span><span>▣</span><span class="hl">☰</span></div>`, 'De drie streepjes onderaan.') + stepHtml(2, 'Kies “Pagina toevoegen aan” › “Startscherm”', `<div class="mk-list"><div class="hl">Toevoegen aan startscherm</div></div>`, 'Bevestig met “Toevoegen”.') + stepHtml(3, 'Klaar!', `<div class="mk-home">${icon}<small>Yoga Sets</small></div>`, 'Het icoontje staat nu op je startscherm.');
+    return stepHtml(1, 'Tik op de drie puntjes', `<div class="mk-addr"><span>🔒 kmhkasper-boop.github.io</span><span class="hl">${IC.dots}</span></div>`, 'Rechtsboven in Chrome.') +
+      stepHtml(2, 'Kies “App installeren”', `<div class="mk-list"><div>Nieuw tabblad</div><div>Bladwijzers</div><div class="hl">App installeren</div></div>`, 'Staat er “Toevoegen aan startscherm”? Dat is ook goed.') +
+      stepHtml(3, 'Tik op “Installeren”', `<div class="mk-top"><span></span><b>App installeren?</b><span class="hl">Installeren</span></div>`, '') +
+      stepHtml(4, 'Klaar!', `<div class="mk-home">${icon}<small>Yoga Sets</small></div>`, 'Open de app voortaan met dit icoontje.');
+  }
+  if (pf.browser === 'safari') return stepHtml(1, 'Kies in de menubalk “Archief”', `<div class="mk-list"><div class="hl">Voeg toe aan Dock…</div></div>`, 'Op een Mac met macOS Sonoma of nieuwer. Daarna staat de app in je Dock.');
+  if (pf.browser === 'firefox') return `<p>Firefox kan apps niet installeren. Open de app in <b>Chrome</b> of <b>Edge</b> en klik op het installeer-icoon in de adresbalk. Je kunt de app ook gewoon als bladwijzer bewaren.</p>`;
+  return stepHtml(1, 'Klik op het installeer-icoon', `<div class="mk-addr"><span>🔒 kmhkasper-boop.github.io/yoga-set-maker</span><span class="hl" style="font-size:22px">⊕</span></div>`, 'Rechts in de adresbalk. Of via het menu ⋮ › “Opslaan en delen” › “App installeren”.') +
+    stepHtml(2, 'Klik op “Installeren”', `<div class="mk-top"><span></span><b>App installeren?</b><span class="hl">Installeren</span></div>`, 'De app opent in een eigen venster en staat bij je programma’s.');
+}
+async function openInstall() {
+  if (isInstalled()) { toast('De app staat al op je beginscherm ✓'); return; }
+  if (location.protocol === 'file:') {
+    const sh = sheet(`<h2>App op je beginscherm zetten</h2><p>Dit is de offline versie (een bestand). Die kun je niet als app installeren. Open daarvoor de app via de link:</p><p class="ist-link">${LIVE_URL}</p><div class="foot"><button class="btn ghost" data-close>Sluiten</button><button class="btn primary" data-copylink>Kopieer de link</button></div>`);
+    bindCopyLink(sh); return;
+  }
+  if (deferredInstall) {
+    const ev = deferredInstall; deferredInstall = null;
+    try { ev.prompt(); const r = await ev.userChoice; if (r && r.outcome === 'accepted') toast('Gelukt! De app komt op je beginscherm ✓'); else toast('Geen probleem, het kan later ook nog via Instellingen'); } catch (e) { showInstallSteps(); }
+    return;
+  }
+  showInstallSteps();
+}
+function showInstallSteps() {
+  const pf = platform();
+  const name = pf.os === 'ios' ? `je ${pf.dev}` : pf.os === 'android' ? 'je telefoon' : 'je computer';
+  const sh = sheet(`<h2>App op ${name} zetten</h2><p class="muted" style="margin-top:0">${pf.os === 'desktop' ? 'Zo opent de app in een eigen venster en werkt hij ook zonder internet.' : 'Zo staat de app als icoontje op je beginscherm en werkt hij ook zonder internet.'}</p>${installSteps(pf)}<div class="foot"><button class="btn primary" data-close>Begrepen</button></div>`, { cls: 'install-sheet' });
+  bindCopyLink(sh);
+}
+function bindCopyLink(sh) {
+  $$('[data-copylink]', sh).forEach((b) => b.onclick = async () => {
+    try { await navigator.clipboard.writeText(LIVE_URL); toast('Link gekopieerd. Plak hem in Safari.'); } catch (e) { prompt('Kopieer deze link:', LIVE_URL); }
+  });
+}
+document.addEventListener('click', (e) => { const b = e.target.closest('[data-install]'); if (b) { e.preventDefault(); openInstall(); } });
 
 /* ================= BACK-UP / DELEN ================= */
 const b64 = (blob) => new Promise((r) => { const f = new FileReader(); f.onload = () => r(f.result); f.readAsDataURL(blob); });
@@ -2241,6 +2322,7 @@ function tourSteps() {
     { sel: '[data-tour=class]', title: 'Les geven', text: 'Grote plaatjes, een timer en een zacht belletje bij elke overgang. Het scherm blijft aan. Je kunt pauzeren, terug en verder.', v: 'build', prep: ex },
     { sel: '[data-tour=print]', title: 'Printen of PDF', text: 'Print je set op één A4, of met alle uitleg erbij. In het printscherm kun je ook een PDF bewaren.', v: 'build', prep: ex },
     { sel: '[data-tour=lib-chips]', title: 'Alle houdingen', text: `Hier vind je ${allPoses().length} houdingen met uitleg. Zoek op naam of kies een soort, zoals Staand, Balans of Stoelyoga. Je kunt ook je eigen houdingen toevoegen.`, v: 'lib', prep: () => { pick.on = false; } },
+    ...(isInstalled() ? [] : [{ sel: '[data-tour=install]', title: 'App op je beginscherm', text: 'Tik hier om de app als icoontje op je beginscherm te zetten. Op de iPhone laat de app je stap voor stap zien hoe dat in Safari gaat.', v: 'settings' }]),
     { sel: '[data-tour=backup]', title: 'Back-up maken', text: 'Je sets staan alleen op dit toestel. Maak daarom af en toe een back-up en bewaar die in je mail of in de cloud. Hier pas je ook je naam, logo en kleuren aan.', v: 'settings' },
     { sel: '[data-tour=feedback]', title: 'Feedback of wens doorgeven', text: 'Werkt iets niet of mis je iets? Hier schrijf je het op. Je mail-app opent met het bericht klaar, jij tikt zelf op versturen.', v: 'settings' },
     { sel: '[data-tour=help]', title: 'Klaar!', text: 'Vergeten hoe iets werkt? Tik altijd op “Leg uit”: daar start je deze rondleiding opnieuw of geef je feedback door. Veel plezier met lesgeven! 🙏', v: 'sets' },
@@ -2300,11 +2382,13 @@ function openHelp() {
     <p>Kies wat je wilt doen.</p>
     <div class="help-choices">
       <button class="btn primary wide" data-h="tour">? Leg uit: rondleiding door de app</button>
+      ${isInstalled() ? '' : '<button class="btn ghost wide" data-h="inst">📲 App op je beginscherm zetten</button>'}
       <button class="btn ghost wide" data-h="fb">✉ Feedback / wens doorgeven</button>
     </div>
     <div class="foot"><button class="btn ghost" data-close>Sluiten</button></div>`, { cls: 'help-sheet' });
   $('[data-h=tour]', sh).onclick = () => { sh.close(); startTour(); };
   $('[data-h=fb]', sh).onclick = () => { sh.close(); openFeedback(); };
+  if ($('[data-h=inst]', sh)) $('[data-h=inst]', sh).onclick = () => { sh.close(); openInstall(); };
 }
 
 /* ================= FEEDBACK ================= */
@@ -2374,9 +2458,11 @@ function welcome() {
     <h2 style="margin-top:12px">Welkom${name ? ', ' + esc(name) : ''}! 🌿</h2>
     <p>Met deze app maak je snel en makkelijk je yogasets. Alles werkt ook zonder internet en blijft op je eigen telefoon.</p>
     <p>Wil je een korte rondleiding? Het duurt maar twee minuutjes. Je kunt hem later altijd opnieuw starten met de knop <b>“Leg uit”</b> rechtsboven.</p>
+    ${isInstalled() || location.protocol === 'file:' ? '' : '<div class="install-row"><button class="btn ghost wide" data-install data-close>📲 App op je beginscherm zetten</button></div>'}
     <div class="foot"><button class="btn ghost" data-later>Later</button><button class="btn primary" data-go>Ja, leg uit</button></div>`);
   $('[data-go]', sh).onclick = () => { sh.close(); startTour(); };
   $('[data-later]', sh).onclick = () => { sh.close(); D.toured = true; save(); };
+  if ($('[data-install]', sh)) $('[data-install]', sh).addEventListener('click', () => { D.toured = true; save(); });
 }
 applyTheme();
 go(D.current && curSet() && location.hash === '#build' ? 'build' : 'sets');
@@ -2397,7 +2483,7 @@ function showUpdateBar() {
   document.body.appendChild(b);
 }
 if (navigator.storage && navigator.storage.persist) navigator.storage.persisted().then((p) => { if (!p) navigator.storage.persist().catch(() => {}); });
-window.YSM = { D: () => D, go, startTour, openFeedback, openHelp, showUpdateBar, poseSheet: (id) => poseSheet(YOGA.POSES.find((p) => p.id === id)), startClass: (id) => startClass(D.sets.find((s) => s.id === id) || curSet()), openPreview: (id) => openPreview(D.sets.find((s) => s.id === id) || curSet()), doPrint: (id, m) => doPrint(D.sets.find((s) => s.id === id) || curSet(), m), openSet, version: APP_VERSION };
+window.YSM = { D: () => D, openInstall, showInstallSteps, platform, isInstalled, go, startTour, openFeedback, openHelp, showUpdateBar, poseSheet: (id) => poseSheet(YOGA.POSES.find((p) => p.id === id)), startClass: (id) => startClass(D.sets.find((s) => s.id === id) || curSet()), openPreview: (id) => openPreview(D.sets.find((s) => s.id === id) || curSet()), doPrint: (id, m) => doPrint(D.sets.find((s) => s.id === id) || curSet(), m), openSet, version: APP_VERSION };
 })();
 
 </script>
