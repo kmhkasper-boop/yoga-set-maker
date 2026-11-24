@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Yoga Sets">
+<meta name="description" content="Maak, bewaar en geef je yogasets: houdingen schuiven, tijden, muziek, printen en lesmodus.">
+<title>Yoga Set Maker</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand" id="brand">
+    <img class="logo" id="logoImg" alt="">
+    <div class="names"><span class="studio" id="studioName">Sterre's Yoga</span><span class="app">Yoga Set Maker</span></div>
+  </div>
+  <button class="btn-help" id="helpBtn" data-tour="help"><b>?</b>Leg uit</button>
+</header>
+
+<main>
+  <section class="view" id="v-sets"></section>
+  <section class="view" id="v-build"></section>
+  <section class="view" id="v-lib"></section>
+  <section class="view" id="v-settings"></section>
+</main>
+
+<nav class="nav" id="nav">
+  <button data-v="sets" data-tour="nav-sets"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2.5"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>Mijn sets</button>
+  <button data-v="build" data-tour="nav-build"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4.5-1 10-10a2.1 2.1 0 00-3-3l-10 10L4 20z"/><path d="M14 7l3 3"/></svg>Set maken</button>
+  <button data-v="lib" data-tour="nav-lib"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4.6" r="2"/><path d="M12 7v7M5 9.5l7 1.5 7-1.5M12 14l-4 6.5M12 14l4 6.5"/></svg>Houdingen</button>
+  <button data-v="settings" data-tour="nav-settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 01-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 010-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 014 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 010 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>Instellingen</button>
+</nav>
+
+<div class="toast" id="toast"></div>
+<audio id="audio" preload="none"></audio>
+<input type="file" id="fileIn" class="hidden">
+<div id="printArea"></div>
+
+<script src="js/figure.js"></script>
+<script src="js/geo.js"></script>
+<script src="js/poses.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
