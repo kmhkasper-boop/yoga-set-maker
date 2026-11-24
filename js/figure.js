@@ -114,8 +114,8 @@
     if (P.prop === 'wall' && B.l1) parts.push(`<rect x="${r1(Math.max(B.l1[3][0], B.l1[2][0]) + 6)}" y="6" width="5" height="${FLOOR - 4}" rx="2" fill="${col.prop}" opacity=".55"/>`);
     if (P.prop === 'bolster') { const hp = T(B.H); parts.push(`<rect x="${r1(hp[0] - 6)}" y="${r1(FLOOR - 9)}" width="36" height="9" rx="4.5" fill="${col.prop}"/>`); }
     if (P.prop === 'block' && B.a1) { const w = T(B.a1[2]); parts.push(`<rect x="${r1(w[0] - 7)}" y="${r1(w[1] + 2.5)}" width="14" height="${r1(Math.max(4, FLOOR - w[1] - 2.5))}" rx="2" fill="${col.prop}"/>`); }
-    const farC = B.front ? col.fig : col.far;
-    const farHalo = B.front;
+    const farC = B.front || P.farDark ? col.fig : col.far;
+    const farHalo = B.front || !!P.farDark;
     const lerp = (p, q, f) => [p[0] + (q[0] - p[0]) * f, p[1] + (q[1] - p[1]) * f];
     // halo starts halfway along the upper segment so joints stay solid
     const limb = (arr, w, c, halo = true) => (halo ? st(line([lerp(arr[0], arr[1], 0.55), ...arr.slice(1)]), w + W.halo * 2, col.halo) : '') + st(line(arr), w, c);
@@ -138,7 +138,11 @@
     if (!B.front && same(B.l1, B.l2)) B.l2 = null;
     const L1 = B.l1 ? limb(B.l1, W.leg, col.fig) : '', L2 = B.l2 ? limb(B.l2, W.leg, farC, farHalo) : '';
     const A1 = B.a1 ? limb(B.a1, W.arm, col.fig) : '', A2 = B.a2 ? limb(B.a2, W.arm, farC, farHalo || P.a2front) : '';
-    if (B.front) parts.push(torso, P.headFirst ? head : '', L2, L1, P.headFirst ? '' : head, A2, A1);
+    if (B.front && P.armsBehind) parts.push(A2, A1, torso, L2, L1, head);
+    else if (B.front && P.a2behind) parts.push(A2, torso, L2, L1, head, A1);
+    else if (B.front && P.headLast) parts.push(torso, L2, L1, A2, A1, head);
+    else if (B.front) parts.push(torso, P.headFirst ? head : '', L2, L1, P.headFirst ? '' : head, A2, A1);
+    else if (P.legsBack && P.headLast) parts.push(L2, A2, L1, torso, A1, head);
     else if (P.legsBack) parts.push(L2, P.a2front ? '' : A2, L1, torso, head, P.a2front ? A2 : '', A1);
     else parts.push(L2, P.a2front ? '' : A2, torso, head, L1, P.a2front ? A2 : '', A1);
     if (P.prop === 'strap' && B.a1 && B.l1) parts.push(`<path d="M${T(B.a1[2])} L${T(B.l1[3])}" stroke="${col.prop}" stroke-width="2" fill="none" stroke-linecap="round"/>`);

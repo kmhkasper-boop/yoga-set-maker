@@ -284,7 +284,7 @@ const R = [
  'Kussen onder de heup|Liggende duif (naaldoog) op de rug',
  'Knieklachten: naaldoog op de rug|Zwangerschap: met steun onder de heup en niet voorover op de buik'],
 ['gomukhasana','Koeiengezicht','Gomukhasana','zittend',2,1,6,'a',
- 'Zit met de knieën boven elkaar. Eén arm van boven en één van onder achter de rug, de handen naar elkaar toe.',
+ 'Zit met de knieën boven elkaar. Eén arm van boven en één van onder achter de rug, de handen naar elkaar toe. (De tekening laat de houding van achteren zien.)',
  'Beide zitbotten op de mat|Bovenste elleboog wijst omhoog|Hoofd niet naar voren laten duwen',
  'Riem tussen de handen|Op een kussen zitten|Alleen de benen of alleen de armen',
  'Knie- of schouderklachten: alleen het deel dat pijnvrij is'],

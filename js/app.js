@@ -1,7 +1,7 @@
 /* Yoga Set Maker – app. Alles werkt lokaal en offline; gegevens blijven op het toestel. */
 (function () {
 'use strict';
-const APP_VERSION = '1.0.0';
+const APP_VERSION = '1.1.0';
 const { POSES, CATS, SEQS } = window.YOGA;
 const GEO = window.POSE_GEO;
 const $ = (s, r = document) => r.querySelector(s);
@@ -25,7 +25,7 @@ const mix = (hex, w, f) => { const a = parseInt(hex.slice(1), 16), b = parseInt(
 
 /* ================= OPSLAG ================= */
 const KEY = 'ysm.data.v1';
-const DEFAULT_SETTINGS = { teacher: 'Sterre', studio: "Sterre's Yoga", logo: null, theme: 'sterre', brand: '#8b782e', accent: '#408174', spb: 5, chime: true, vol: 0.7, auto: true, showCues: true };
+const DEFAULT_SETTINGS = { teacher: 'Sterre', studio: "Sterre's Yoga", logo: null, theme: 'sterre', brand: '#8b782e', accent: '#408174', spb: 5, chime: true, vol: 0.7, auto: true, showCues: true, feedbackEmail: 'lucascaska@gmail.com' };
 let D;
 function load() { try { return JSON.parse(localStorage.getItem(KEY)); } catch (e) { return null; } }
 let saveT;
@@ -58,7 +58,7 @@ function getPose(id) { return poseMap.get(id) || (D.custom || []).find((p) => p.
 function allPoses() { return POSES.concat(D.custom || []); }
 function mirrorFor(pose, side) {
   if (!pose || !side || side === 'both') return false;
-  const g = !pose.img && GEO[pose.g]; const front = !!(g && g.v === 'f');
+  const g = !pose.img && GEO[pose.g]; const front = !!(g && g.v === 'f' && !g.back); // achteraanzicht telt als zijaanzicht
   return side === 'l' ? !front : front; // vooraanzicht: rechterbeen staat links in beeld
 }
 function figHtml(pose, opts = {}) {
@@ -651,7 +651,7 @@ async function addTracks(s) {
     s.tracks.push(id);
   }
   touch(s); renderMusic(s); toast(files.length + (files.length > 1 ? ' liedjes' : ' liedje') + ' toegevoegd ✓');
-  if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
 }
 function cleanupTrack(id) { if (D.sets.some((x) => x.tracks.includes(id))) return; delete D.tracks[id]; save(); idb.del(id).catch(() => {}); }
 async function playTrack(s, i) {
@@ -1040,6 +1040,11 @@ function renderSettings() {
     ${standalone ? '<div class="install-hint">✓ De app staat op je beginscherm en werkt ook zonder internet.</div>' : isIOS ? '<div class="install-hint"><b>iPhone / iPad:</b> open deze pagina in <b>Safari</b>, tik onderaan op het deel-icoon <b>⇪</b> en kies <b>“Zet op beginscherm”</b>. Daarna open je de app met het icoontje.</div>' : '<div class="install-hint"><b>Android:</b> tik in Chrome rechtsboven op <b>⋮</b> en kies <b>“App installeren”</b> of <b>“Toevoegen aan startscherm”</b>.<br><b>Computer:</b> klik in Chrome of Edge op het installeer-icoon in de adresbalk.</div>'}
     ${deferredInstall ? '<button class="btn primary wide" id="instBtn" style="margin-top:10px">＋ Installeer de app</button>' : ''}
   </section>
+  <section class="card set-sec" data-tour="feedback"><h3>Feedback of wens doorgeven</h3>
+    <p class="muted" style="margin-top:0">Werkt iets niet, mis je iets of heb je een vraag? Laat het weten, dan kan de app verbeterd worden.</p>
+    <button class="btn primary wide" id="sFb">✉ Feedback / wens doorgeven</button>
+    <label class="field" style="margin-top:14px"><span>Feedback gaat naar dit e-mailadres</span><input class="input" type="email" id="sFbMail" inputmode="email" autocomplete="off" value="${esc(st.feedbackEmail || '')}"></label>
+  </section>
   <section class="card set-sec"><h3>Hulp</h3><div class="row"><button class="btn ghost" id="sTour" style="flex:1">? Rondleiding opnieuw</button><button class="btn ghost" id="sEx" style="flex:1">☀ Voorbeeldsets terugzetten</button></div>
     <p class="muted" style="font-size:13.5px;margin:12px 0 0">Yoga Set Maker · versie ${APP_VERSION} · werkt offline · je gegevens blijven op dit toestel. Illustraties en teksten zijn een algemene leidraad; pas ze aan aan je eigen lesgeven en je leerlingen.</p></section>`;
   const bind = (id, k, fn = (x) => x) => { $(id).oninput = (e) => { st[k] = fn(e.target.value); save(); applyTheme(); }; };
@@ -1057,6 +1062,8 @@ function renderSettings() {
   $('#bkOut').onclick = () => makeBackup($('#bkMusic').checked);
   $('#bkIn').onclick = () => importFile();
   $('#sTour').onclick = () => startTour();
+  $('#sFb').onclick = () => openFeedback();
+  $('#sFbMail').oninput = (e) => { st.feedbackEmail = e.target.value.trim(); save(); };
   $('#sEx').onclick = () => { exampleSets().forEach((ex) => { const i = D.sets.findIndex((x) => x.id === ex.id); if (i >= 0) D.sets[i] = ex; else D.sets.push(ex); }); save(); toast('Voorbeeldsets staan weer klaar'); };
   if ($('#instBtn')) $('#instBtn').onclick = async () => { deferredInstall.prompt(); deferredInstall = null; };
   if (D.lastBackup) $('#bkInfo').textContent = 'Laatste back-up: ' + new Date(D.lastBackup).toLocaleString('nl-NL');
@@ -1156,7 +1163,8 @@ function tourSteps() {
     { sel: '[data-tour=print]', title: 'Printen of PDF', text: 'Print je set op één A4, of met alle uitleg erbij. In het printscherm kun je ook een PDF bewaren.', v: 'build', prep: ex },
     { sel: '[data-tour=lib-chips]', title: 'Alle houdingen', text: `Hier vind je ${allPoses().length} houdingen met uitleg. Zoek op naam of kies een soort, zoals Staand, Balans of Stoelyoga. Je kunt ook je eigen houdingen toevoegen.`, v: 'lib', prep: () => { pick.on = false; } },
     { sel: '[data-tour=backup]', title: 'Back-up maken', text: 'Je sets staan alleen op dit toestel. Maak daarom af en toe een back-up en bewaar die in je mail of in de cloud. Hier pas je ook je naam, logo en kleuren aan.', v: 'settings' },
-    { sel: '[data-tour=help]', title: 'Klaar!', text: 'Vergeten hoe iets werkt? Tik altijd op “Leg uit” en je krijgt deze rondleiding opnieuw. Veel plezier met lesgeven! 🙏', v: 'sets' },
+    { sel: '[data-tour=feedback]', title: 'Feedback of wens doorgeven', text: 'Werkt iets niet of mis je iets? Hier schrijf je het op. Je mail-app opent met het bericht klaar, jij tikt zelf op versturen.', v: 'settings' },
+    { sel: '[data-tour=help]', title: 'Klaar!', text: 'Vergeten hoe iets werkt? Tik altijd op “Leg uit”: daar start je deze rondleiding opnieuw of geef je feedback door. Veel plezier met lesgeven! 🙏', v: 'sets' },
   ];
 }
 let TOUR = null;
@@ -1207,7 +1215,78 @@ function endTour() {
   TOUR = null; D.toured = true; save();
   go('sets');
 }
-$('#helpBtn').onclick = startTour;
+$('#helpBtn').onclick = openHelp;
+function openHelp() {
+  const sh = sheet(`<h2>Hulp nodig?</h2>
+    <p>Kies wat je wilt doen.</p>
+    <div class="help-choices">
+      <button class="btn primary wide" data-h="tour">? Leg uit: rondleiding door de app</button>
+      <button class="btn ghost wide" data-h="fb">✉ Feedback / wens doorgeven</button>
+    </div>
+    <div class="foot"><button class="btn ghost" data-close>Sluiten</button></div>`, { cls: 'help-sheet' });
+  $('[data-h=tour]', sh).onclick = () => { sh.close(); startTour(); };
+  $('[data-h=fb]', sh).onclick = () => { sh.close(); openFeedback(); };
+}
+
+/* ================= FEEDBACK ================= */
+const FB_TYPES = [['fout', '🐞 Fout', 'Er gaat iets mis'], ['wens', '✨ Wens', 'Dit zou ik graag willen'], ['vraag', '❓ Vraag', 'Hoe werkt dit?']];
+const FB_SCREENS = ['Algemeen / weet ik niet', 'Mijn sets', 'Set maken', 'Houdingen', 'Les geven', 'Bekijken', 'Printen', 'Muziek', 'Foto van papier', 'Instellingen', 'Leg uit / rondleiding'];
+const VIEW_SCREEN = { sets: 'Mijn sets', build: 'Set maken', lib: 'Houdingen', settings: 'Instellingen' };
+function deviceInfo() {
+  const ua = navigator.userAgent;
+  const os = /iPhone/.test(ua) ? 'iPhone' : /iPad/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ? 'iPad' : /Android/.test(ua) ? 'Android' : /Windows/.test(ua) ? 'Windows' : /Mac OS X/.test(ua) ? 'Mac' : /Linux/.test(ua) ? 'Linux' : 'onbekend';
+  const osv = (ua.match(/OS (\d+[_.]\d+)/) || ua.match(/Android (\d+(\.\d+)?)/) || [])[1];
+  const br = /Edg\//.test(ua) ? 'Edge' : /CriOS|Chrome\//.test(ua) ? 'Chrome' : /FxiOS|Firefox\//.test(ua) ? 'Firefox' : /Safari\//.test(ua) ? 'Safari' : 'browser';
+  const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  return `${os}${osv ? ' ' + osv.replace('_', '.') : ''} · ${br} · scherm ${screen.width}×${screen.height} · ${standalone ? 'geïnstalleerde app' : location.protocol === 'file:' ? 'offline bestand' : 'in de browser'} · ${navigator.language || ''}`;
+}
+function openFeedback(pre = {}) {
+  const st = D.settings; const dr = Object.assign({ type: 'wens', msg: '', screen: '', set: '' }, D.fbDraft || {}, pre);
+  if (!dr.screen) dr.screen = VIEW_SCREEN[VIEW] || FB_SCREENS[0];
+  if (!dr.set && VIEW === 'build' && curSet()) dr.set = curSet().id;
+  const sets = D.sets.slice().sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+  const sh = sheet(`<h2>Feedback of wens doorgeven</h2>
+    <p class="muted" style="margin-top:0">Je bericht gaat via je eigen mail-app naar <b>${esc(st.feedbackEmail || 'nog geen adres ingesteld')}</b>. Je ziet het eerst, en verstuurt het zelf.</p>
+    <div class="field"><span>Wat wil je doorgeven?</span><div class="fb-types">${FB_TYPES.map(([k, l, d]) => `<button class="fb-type ${dr.type === k ? 'on' : ''}" data-ft="${k}"><b>${l}</b><small>${d}</small></button>`).join('')}</div></div>
+    <label class="field"><span>Je bericht</span><textarea class="input" id="fbMsg" rows="5" placeholder="Bijvoorbeeld: bij het printen staat de tijd niet goed. Of: ik zou graag eigen foto's bij een houding willen.">${esc(dr.msg)}</textarea></label>
+    <label class="field"><span>Over welk scherm? <i class="muted">(mag leeg)</i></span><select class="input" id="fbScreen">${FB_SCREENS.map((x) => `<option ${x === dr.screen ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></label>
+    <label class="field"><span>Over welke set? <i class="muted">(mag leeg)</i></span><select class="input" id="fbSet"><option value="">Geen bepaalde set</option>${sets.map((x) => `<option value="${x.id}" ${x.id === dr.set ? 'selected' : ''}>${esc(x.title || 'Naamloze set')}</option>`).join('')}</select></label>
+    <p class="muted fb-auto">Wordt automatisch toegevoegd: versie ${APP_VERSION} · ${esc(deviceInfo())}</p>
+    <div class="fb-actions"><button class="btn primary wide" id="fbMail">✉ Open in mijn mail-app</button><button class="btn ghost wide" id="fbCopy">Kopieer tekst</button></div>
+    <p class="muted" style="font-size:13.5px;margin:8px 0 0">Gebeurt er niets na “Open in mijn mail-app”? Tik dan op “Kopieer tekst” en plak het in een mail of appje.</p>
+    <div class="foot"><button class="btn ghost" data-close>Sluiten</button></div>`, { cls: 'fb-sheet' });
+  const keep = () => { D.fbDraft = { type: dr.type, msg: $('#fbMsg', sh).value, screen: $('#fbScreen', sh).value, set: $('#fbSet', sh).value }; save(); };
+  $$('[data-ft]', sh).forEach((b) => b.onclick = () => { dr.type = b.dataset.ft; $$('[data-ft]', sh).forEach((x) => x.classList.toggle('on', x === b)); keep(); });
+  ['#fbMsg', '#fbScreen', '#fbSet'].forEach((id) => $(id, sh).addEventListener('input', keep));
+  const compose = () => {
+    const msg = $('#fbMsg', sh).value.trim();
+    const setO = D.sets.find((x) => x.id === $('#fbSet', sh).value);
+    const type = FB_TYPES.find((t) => t[0] === dr.type);
+    const body = [`Soort: ${type[1].replace(/^\S+\s/, '')}`, '', msg, '', '—', `Scherm: ${$('#fbScreen', sh).value}`, setO ? `Set: ${setO.title || 'Naamloze set'} (${setO.items.length} kaarten)` : 'Set: geen bepaalde set',
+      `Van: ${st.teacher || ''}${st.studio ? ' · ' + st.studio : ''}`, `App: Yoga Set Maker ${APP_VERSION}`, `Toestel: ${deviceInfo()}`, `Datum: ${new Date().toLocaleString('nl-NL')}`].join('\n');
+    return { msg, subject: 'Yoga Set Maker feedback', body };
+  };
+  $('#fbMail', sh).onclick = () => {
+    const c = compose(); if (!c.msg) { toast('Schrijf eerst kort je bericht'); $('#fbMsg', sh).focus(); return; }
+    const to = (st.feedbackEmail || '').trim();
+    if (!to) { toast('Vul eerst bij Instellingen een e-mailadres in, of kopieer de tekst'); return; }
+    const url = `mailto:${encodeURIComponent(to).replace('%40', '@')}?subject=${encodeURIComponent(c.subject)}&body=${encodeURIComponent(c.body.replace(/\n/g, '\r\n'))}`;
+    D.fbLast = Date.now(); save();
+    window.__lastMailto = url; window.location.href = url;
+    setTimeout(() => toast('Je mail-app gaat open. Vergeet niet op versturen te tikken.', { label: 'Bericht wissen', fn: () => { D.fbDraft = null; save(); } }), 600);
+  };
+  $('#fbCopy', sh).onclick = async () => {
+    const c = compose(); if (!c.msg) { toast('Schrijf eerst kort je bericht'); $('#fbMsg', sh).focus(); return; }
+    const txt = `Aan: ${st.feedbackEmail || ''}\nOnderwerp: ${c.subject}\n\n${c.body}`;
+    let ok = false;
+    try { await navigator.clipboard.writeText(txt); ok = true; } catch (e) {
+      const ta = el('<textarea style="position:fixed;top:0;left:0;opacity:0"></textarea>'); ta.value = txt; document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, txt.length);
+      try { ok = document.execCommand('copy'); } catch (e2) {} ta.remove();
+    }
+    if (ok) toast('Tekst gekopieerd. Plak hem in een mail of appje' + (st.feedbackEmail ? ' aan ' + st.feedbackEmail : ''));
+    else sheet(`<h2>Kopieer deze tekst</h2><p class="muted">Houd je vinger op de tekst en kies “Alles selecteren” en “Kopieer”.</p><textarea class="input" rows="10" readonly>${esc(txt)}</textarea><div class="foot"><button class="btn primary" data-close>Klaar</button></div>`);
+  };
+}
 
 /* ================= START ================= */
 function welcome() {
@@ -1227,9 +1306,17 @@ window.addEventListener('pagehide', saveNow);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') saveNow(); });
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   navigator.serviceWorker.register('sw.js').then((reg) => {
-    reg.addEventListener('updatefound', () => { const w = reg.installing; w && w.addEventListener('statechange', () => { if (w.state === 'installed' && navigator.serviceWorker.controller) toast('Nieuwe versie geladen. Sluit en open de app om te vernieuwen.'); }); });
+    const had = !!navigator.serviceWorker.controller;
+    navigator.serviceWorker.addEventListener('controllerchange', () => { if (had) showUpdateBar(); });
+    setInterval(() => reg.update().catch(() => {}), 60 * 60 * 1000);
   }).catch(() => {});
 }
+function showUpdateBar() {
+  if ($('#updBar')) return;
+  const b = el(`<div id="updBar" class="upd-bar" role="status"><span>✨ Er is een nieuwe versie van de app.</span><button class="btn small">Vernieuwen</button></div>`);
+  $('button', b).onclick = () => { saveNow(); location.reload(); };
+  document.body.appendChild(b);
+}
 if (navigator.storage && navigator.storage.persist) navigator.storage.persisted().then((p) => { if (!p) navigator.storage.persist().catch(() => {}); });
-window.YSM = { D: () => D, go, startTour, startClass: (id) => startClass(D.sets.find((s) => s.id === id) || curSet()), openPreview: (id) => openPreview(D.sets.find((s) => s.id === id) || curSet()), doPrint: (id, m) => doPrint(D.sets.find((s) => s.id === id) || curSet(), m), openSet, version: APP_VERSION };
+window.YSM = { D: () => D, go, startTour, openFeedback, openHelp, showUpdateBar, poseSheet: (id) => poseSheet(YOGA.POSES.find((p) => p.id === id)), startClass: (id) => startClass(D.sets.find((s) => s.id === id) || curSet()), openPreview: (id) => openPreview(D.sets.find((s) => s.id === id) || curSet()), doPrint: (id, m) => doPrint(D.sets.find((s) => s.id === id) || curSet(), m), openSet, version: APP_VERSION };
 })();

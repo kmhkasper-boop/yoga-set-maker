@@ -308,3 +308,15 @@ body.has-player .fab{bottom:calc(var(--nav-h) + 86px + var(--safe-b))}
 }
 html{scroll-padding-top:calc(70px + var(--bh,150px))}
 @media (max-width:899px){html.ref-on{scroll-padding-top:calc(70px + var(--bh,150px) + 34vh)}}
+
+/* feedback + hulp + update */
+.help-choices{display:grid;gap:10px;margin:6px 0 4px}
+.fb-types{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.fb-type{border:1.5px solid var(--line);background:#fff;border-radius:14px;padding:10px 6px;min-height:64px;display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center}
+.fb-type b{font-size:16px}.fb-type small{font-size:12.5px;color:var(--muted);line-height:1.2}
+.fb-type.on{border-color:var(--accent);background:var(--accent);color:#fff}.fb-type.on small{color:#fff;opacity:.9}
+.fb-auto{font-size:13px;margin:4px 0 12px;line-height:1.35}
+.fb-actions{display:grid;gap:10px}
+.upd-bar{position:fixed;left:12px;right:12px;bottom:calc(84px + var(--safe-b,0px));z-index:80;display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--ink,#303030);color:#fff;border-radius:14px;padding:10px 12px 10px 16px;box-shadow:0 6px 24px rgba(0,0,0,.25);font-size:15.5px;max-width:560px;margin:0 auto}
+.upd-bar .btn{background:#fff;color:#2f2b26;min-height:40px;flex:none}
+@media print{.upd-bar{display:none}}

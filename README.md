@@ -11,6 +11,7 @@ Gemaakt als cadeau voor Sterre van [Sterre's Yoga](https://www.sterresyoga.nl/).
 - **Foto van papier** – maak een foto van een getekende les; die staat naast de set als voorbeeld.
 - **Muziek** – Spotify-playlist per set (één knop) en eigen mp3’s die in de app spelen.
 - **Bekijken, printen (PDF) en Les geven** – grote kaarten, timer, zachte bel, scherm blijft aan.
+- **Feedback / wens doorgeven** – via “Leg uit” of Instellingen: opent je mail-app met een ingevuld bericht (adres instelbaar), of kopieer de tekst.
 - **Mijn sets** – zoeken, favorieten, dupliceren, voorbeeldsets, back-up maken en terugzetten.
 - **Werkt offline** en is te installeren op iPhone, Android, tablet en laptop.
 - **Leg uit** – knop rechtsboven geeft een rondleiding.
